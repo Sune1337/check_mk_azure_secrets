@@ -61,11 +61,11 @@ def check_azure_secrets_client_secrets(item: str, params: Mapping[str, Any], sec
     end_date_time = datetime.datetime.fromisoformat(data["endDateTime"]).astimezone(to_zone).date()
     expires_in = end_date_time - datetime.date.today()
 
-    yield Result(state=State(0), summary=f"{data["name"]} expires in {expires_in.days} days.")
-    yield Result(state=State(0), summary=f"Created: {start_date_time}, Expires {end_date_time}")
+    yield Result(state=State(0), summary=f"{data["name"]}", details=f"Created: {start_date_time}, Expires {end_date_time}")
     yield Metric(name="expires_in", value=expires_in.days, levels=params["status_levels"])
     yield from check_levels(
         expires_in.days,
+        label="Expires in",
         levels_lower = ("fixed", params["status_levels"]),
     )
 
