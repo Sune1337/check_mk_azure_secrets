@@ -1,0 +1,35 @@
+{
+  "name": "Checkmk",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "VARIANT": "2.3.0p13"
+    }
+  },
+
+  "forwardPorts": [5000, 5000],
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "jetbrains": {
+      "backend": "PyCharm"
+    }
+  },
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": ".devcontainer/symlink.sh",
+
+  // Start omd every time the container is started
+  "postStartCommand": "omd start",
+
+  // Comment out connect as root instead.
+  "remoteUser": "cmk",
+  "remoteEnv": {
+    "OMD_ROOT": "/omd/sites/cmk",
+    "OMD_SITE": "cmk",
+    "CMK_SITE_ID": "cmk"
+  },
+  "containerEnv": {
+    "WORKSPACE": "${containerWorkspaceFolder}"
+  }
+}

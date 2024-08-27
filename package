@@ -1,0 +1,16 @@
+{'author': 'Kristoffer Lindahl',
+ 'description': 'Monitor when client secrets in Azure apps are about to '
+                'expire.',
+ 'download_url': '',
+ 'files': {'cmk_addons_plugins': ['azure_secrets/special_agents/agent_azure_secrets.py',
+                                  'azure_secrets/libexec/agent_azure_secrets',
+                                  'azure_secrets/agent_based/azure_secrets_client_secrets.py',
+                                  'azure_secrets/server_side_calls/special_agent.py',
+                                  'azure_secrets/rulesets/datasource_program.py'],
+           'web': ['plugins/wato/azure_secrets_client_secrets_parameters.py']},
+ 'name': 'azure_secrets',
+ 'title': 'Azure secrets',
+ 'version': '1.0.0',
+ 'version.min_required': '2.3.0',
+ 'version.packaged': 'cmk-mkp-tool 0.2.0',
+ 'version.usable_until': None}
