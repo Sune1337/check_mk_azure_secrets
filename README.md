@@ -1,3 +1,6 @@
+# Example output of plugin
+![Example output](assets/example_output.png)
+
 # Steps to monitor azure client secrets in Checkmk.
 ## Configure an application in Azure
 While configuring Azure, take note of the following data that will be used when configuring the special agent.
