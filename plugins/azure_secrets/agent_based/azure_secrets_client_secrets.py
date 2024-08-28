@@ -18,8 +18,9 @@ from cmk.agent_based.v2 import (
 import json
 from collections.abc import Mapping
 from typing import Any, Dict
-import datetime
+from datetime import datetime, timezone
 from dateutil import tz
+from cmk.agent_based.v2 import render
 
 ClientSecretsData = Dict[str, Any]
 
@@ -56,17 +57,22 @@ def check_azure_secrets_client_secrets(item: str, params: Mapping[str, Any], sec
     if data is None:
         return
 
-    to_zone = tz.tzlocal()
-    start_date_time = datetime.datetime.fromisoformat(data["startDateTime"]).astimezone(to_zone).date()
-    end_date_time = datetime.datetime.fromisoformat(data["endDateTime"]).astimezone(to_zone).date()
-    expires_in = end_date_time - datetime.date.today()
+    start_date = datetime.fromisoformat(data["startDateTime"])
+    end_date = datetime.fromisoformat(data["endDateTime"])
+    expires_in = (end_date - datetime.now(timezone.utc)).total_seconds()
+    validity_period = (end_date - start_date).total_seconds()
+    validity_period_perc = min(100.0, (validity_period - expires_in) / validity_period * 100)
 
-    yield Result(state=State(0), summary=f"{data["name"]}", details=f"Created: {start_date_time}, Expires {end_date_time}")
-    yield Metric(name="expires_in", value=expires_in.days, levels=params["status_levels"])
+    to_zone = tz.tzlocal()
+    status_levels = (params["status_levels"][0] * 86400, params["status_levels"][1] * 86400)
+    yield Result(state=State(0), summary=f"{data["name"]}", details=f"Created: {start_date.astimezone(to_zone).date()}, Expires {end_date.astimezone(to_zone).date()}")
+    yield Metric(name="expires_in", value=expires_in, levels=status_levels)
+    yield Metric(name="validity_period_perc", value=validity_period_perc, )
     yield from check_levels(
-        expires_in.days,
+        max(0.0, expires_in),
         label="Expires in",
-        levels_lower = ("fixed", params["status_levels"]),
+        levels_lower = ("fixed", status_levels),
+        render_func = lambda v: render.timespan(v),
     )
 
 
