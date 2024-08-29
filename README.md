@@ -14,9 +14,11 @@ While configuring Azure, take note of the following data that will be used when 
 1. Create an application registration.
 
 ![Create the application registration in Azure](assets/application_registration.png)
+
 2. In the created app, create a client secret.
 
 ![Create the client-secret for the application](assets/client_secret.png)
+
 3. Assign the application read permissions. Also don't forget to grant admin consent.
 
 ![Assign permissions to the application](assets/assign_app_permissions.png)
