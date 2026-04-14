@@ -44,7 +44,16 @@ agent_section_azure_secrets_client_secrets = AgentSection(
 def discovery_azure_secrets_client_secrets(section: ClientSecretsData) -> DiscoveryResult:
     for key in section.keys():
         item = section[key].get("id")
-        if not item is None:
+        secret_type = section[key].get("secretType")
+        if not item is None and secret_type == "secret":
+            yield Service(item=item)
+
+
+def discovery_azure_secrets_client_certificates(section: ClientSecretsData) -> DiscoveryResult:
+    for key in section.keys():
+        item = section[key].get("id")
+        secret_type = section[key].get("secretType")
+        if not item is None and secret_type == "certificate":
             yield Service(item=item)
 
 
@@ -81,6 +90,16 @@ check_plugin_azure_secrets_client_secrets = CheckPlugin(
     service_name="Client secret %s",
     sections=["azure_secrets_client_secrets"],
     discovery_function=discovery_azure_secrets_client_secrets,
+    check_function=check_azure_secrets_client_secrets,
+    check_default_parameters={"status_levels": (14, 7)},
+    check_ruleset_name="azure_secrets_client_secrets",
+)
+
+check_plugin_azure_secrets_client_certificates = CheckPlugin(
+    name="azure_secrets_client_certificates",
+    service_name="Client certificate %s",
+    sections=["azure_secrets_client_secrets"],
+    discovery_function=discovery_azure_secrets_client_certificates,
     check_function=check_azure_secrets_client_secrets,
     check_default_parameters={"status_levels": (14, 7)},
     check_ruleset_name="azure_secrets_client_secrets",

@@ -55,13 +55,14 @@ def agent_azure_secrets_main(args: Args) -> int:
         print(result, file=sys.stderr)
         return -1
 
-    url = 'https://graph.microsoft.com/v1.0/applications?$select=appId,displayName,passwordCredentials'
     headers = {
         'Authorization': f"Bearer {result['access_token']}"
     }
 
     with SectionWriter(f"azure_secrets_client_secrets") as w:
 
+        # Load all password secrets.
+        url = 'https://graph.microsoft.com/v1.0/applications?$select=appId,displayName,passwordCredentials'
         while True:
             # Make a GET request to the provided url, passing the access token in a header
             graph_result = requests.get(url=url, headers=headers)
@@ -74,12 +75,41 @@ def agent_azure_secrets_main(args: Args) -> int:
             if "value" in query_result:
                 for item in query_result["value"]:
                     if "passwordCredentials" in item:
-                        for passwordCredential in item["passwordCredentials"]:
+                        for keyCredential in item["passwordCredentials"]:
                             w.append_json({
-                                "id": passwordCredential["keyId"],
-                                "name": f"{item["displayName"]} / {passwordCredential["displayName"]}",
-                                "startDateTime": passwordCredential["startDateTime"],
-                                "endDateTime": passwordCredential["endDateTime"]
+                                "secretType": "secret",
+                                "id": keyCredential["keyId"],
+                                "name": f"{item["displayName"]} / {keyCredential["displayName"]}",
+                                "startDateTime": keyCredential["startDateTime"],
+                                "endDateTime": keyCredential["endDateTime"]
+                            })
+
+            if not "@odata.nextLink" in query_result:
+                break
+
+            url = query_result["@odata.nextLink"]
+
+        # Load all certificate secrets.
+        url = 'https://graph.microsoft.com/v1.0/applications?$select=appId,displayName,keyCredentials'
+        while True:
+            # Make a GET request to the provided url, passing the access token in a header
+            graph_result = requests.get(url=url, headers=headers)
+            if not graph_result.ok:
+                print(f"Error when calling Graph API. Status code: {graph_result.status_code} Reason: {graph_result.reason}", file=sys.stderr)
+                return -1
+
+            # Print the results in a JSON format
+            query_result = graph_result.json()
+            if "value" in query_result:
+                for item in query_result["value"]:
+                    if "keyCredentials" in item:
+                        for keyCredential in item["keyCredentials"]:
+                            w.append_json({
+                                "secretType": "certificate",
+                                "id": keyCredential["keyId"],
+                                "name": f"{item["displayName"]} / {keyCredential["displayName"]}",
+                                "startDateTime": keyCredential["startDateTime"],
+                                "endDateTime": keyCredential["endDateTime"]
                             })
 
             if not "@odata.nextLink" in query_result:
